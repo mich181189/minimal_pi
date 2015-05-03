@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+source build_vars.sh
+
+if [ ! -d $MINIMALPI_ROOT/downloads ]; then
+mkdir downloads
+fi
+
 if [ -d $MINIMALPI_ROOT/toolchain_build ]; then
 	rm -rf $MINIMALPI_ROOT/toolchain_build
 fi
