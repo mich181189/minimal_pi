@@ -1,17 +1,9 @@
 export MINIMALPI_ROOT=$(pwd)
-export MINIMALPI_ARCH=armv7a-linux-gnueabihf
+export MINIMALPI_ARCH=armv7a-unknown-linux-gnueabihf
 export MINIMALPI_BASEDIR=$MINIMALPI_ROOT/toolchain
 
-MINIMALPI_BINUTILS=binutils-2.25
-MINIMALPI_GCC=gcc-5.1.0
-MINIMALPI_GLIBC=glibc-2.21
+MINIMALPI_CROSSTOOLS=crosstool-ng-1.20.0
 MINIMALPI_KERNEL=linux-4.0.1
 
-#gcc dependencies
-MINIMALPI_MPFR=mpfr-3.1.2
-MINIMALPI_GMP=gmp-6.0.0
-MINIMALPI_GMP_DOWNLOAD=gmp-6.0.0a
-MINIMALPI_MPC=mpc-1.0.3
-MINIMALPI_ISL=isl-0.14
 
 PATH=$MINIMALPI_BASEDIR/bin:$PATH
