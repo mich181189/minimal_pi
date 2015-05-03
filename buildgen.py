@@ -1,21 +1,9 @@
 #Generates the MinimalPi Makefile
 # Why? because the MakeFile ended up being really repetetive!
 
+import os
+
 #first, some settings
-DIRTREE=[
-	'/usr',
-	'/usr/bin',
-	'/usr/lib',
-	'/usr/share',
-	'/usr/sbin',
-	'/usr/local',
-	'/etc',	
-	]
-DIRLINKS={
-	'/bin':'/usr/bin',
-	'/lib':'/usr/lib',
-	'/sbin':'/usr/sbin',	
-	}
 
 DIR_ROOT="target"
 DIR_DOWNLOAD="downloads"
@@ -23,9 +11,10 @@ DIR_BUILD="buildPkgs"
 
 #Package Definitions
 from packageDefs.busybox import busybox
+from packageDefs.libtirpc import libtirpc
 
 #Package list
-PACKAGES=[busybox]
+PACKAGES=[libtirpc,busybox]
 
 #functions for writing a makefile
 def writeRule(f,target,dependencies,rules):
@@ -50,7 +39,7 @@ def copyFile(f,src,dest):
     writeRule(f,dest,deps,rules)
 
 def writePackageRules(f,package):
-    global cleanCommands
+    global cleanCommands,installCommands
     print "Writing rules for " + package["name"]
     deps = []
     rules = []
@@ -79,19 +68,26 @@ def writePackageRules(f,package):
     
     #set some defaults
     if not "configure" in package:
-        package["configure"] = "./configure "
+        package["configure"] = "./configure --prefix="+os.environ["MINIMALPI_ROOT"]+"/" \
+        +DIR_ROOT+"/usr --host="+os.environ["MINIMALPI_ARCH"] + \
+        " --with-sysroot="+os.environ["MINIMALPI_ROOT"]+"/"+DIR_ROOT
+
+        if "extraconfig" in package:
+            package["configure"] = package["configure"] + " " + package["extraconfig"]
 
     rules.append(package["configure"])
     
     #Otherwise we'll do a normal recursive make
     extraMakeRules = []
     if "make" in package:
-        rules.append(package["make"])
+        extraMakeRules.append("cd " + DIR_BUILD+"/"+package["buildDir"] + " && " + package["make"])
     else:
         extraMakeRules.append("$(MAKE) -j4 -C " + DIR_BUILD+"/"+package["buildDir"])
 
-
-    rules.append("cd ..")
+    if "make_install" in package:
+        extraMakeRules.append("cd " + DIR_BUILD+"/"+package["buildDir"] + " && " + package["make_install"])
+    else:
+        extraMakeRules.append("sudo env PATH=$$PATH $(MAKE) -C " + DIR_BUILD+"/"+package["buildDir"] + " install")
 
     realrules = ""
 
@@ -102,7 +98,17 @@ def writePackageRules(f,package):
 
     extraMakeRules[:0] = [realrules]
 
-    writeRule(f,package["name"],deps,extraMakeRules)
+    if "extraInstall" in package:
+        writeRule(f,package["name"]+"_main",deps,extraMakeRules)
+        extraDeps = [package["name"]+"_main"]
+        for src,dest in package["extraInstall"].iteritems():
+            writeRule(f,DIR_ROOT+dest,[DIR_BUILD+"/"+package["buildDir"]+"/"+src],
+                ["sudo env PATH=$$PATH cp "+DIR_BUILD+"/"+package["buildDir"]+"/"+src+" "+DIR_ROOT+dest])
+            extraDeps.append(DIR_ROOT+dest)
+        writeRule(f,package["name"],extraDeps,[])
+
+    else:
+        writeRule(f,package["name"],deps,extraMakeRules)
     
 
 #scratch variable to hold the directories we've created rules for
@@ -134,16 +140,11 @@ def createLink(f,src,dest):
 print "MinimalPi Makefile Generator"
 print ""
 #figure out what targets we need to build by default
-mainTargets = ["directories","links","packages"]
+mainTargets = ["directories","packages"]
 dirTargets = [DIR_DOWNLOAD,DIR_BUILD]
 linkTargets = []
 cleanCommands = ["rm -rf "+DIR_ROOT]
 packageDeps = []
-for dir in DIRTREE:
-    dirTargets.append(DIR_ROOT+dir)
-
-for src,dest in DIRLINKS.items():
-    linkTargets.append(DIR_ROOT+src)
 
 for package in PACKAGES:
     packageDeps.append(package["name"])
@@ -158,7 +159,6 @@ makefile.write("# Top level rules\n")
 makefile.write("####################################################\n")
 writeRule(makefile,"all",mainTargets,[])
 writeRule(makefile,"directories",dirTargets,[])
-writeRule(makefile,"links",linkTargets,[])
 writeRule(makefile,"packages",packageDeps,[])
 
 #now the directory tree
@@ -166,18 +166,15 @@ print "Making the directory tree"
 makefile.write("####################################################\n")
 makefile.write("# Directory rules\n")
 makefile.write("####################################################\n")
-for workdir in DIRTREE:
-    createDirectory(makefile,DIR_ROOT+workdir)
+
+target_rules = [
+                "mkdir -p " + DIR_ROOT,
+                "cp -rp toolchain/"+os.environ['MINIMALPI_ARCH']+"/"+os.environ['MINIMALPI_ARCH']+"/sysroot/* "+DIR_ROOT
+                ]
+writeRule(makefile,"target",[],target_rules)
+
 createDirectory(makefile,DIR_DOWNLOAD)
 createDirectory(makefile,DIR_BUILD)
-
-#Next the links
-print "Making the links"
-makefile.write("####################################################\n")
-makefile.write("# Link rules\n")
-makefile.write("####################################################\n")
-for src,dest in DIRLINKS.iteritems():
-    createLink(makefile,DIR_ROOT+src,DIR_ROOT+dest)
 
 makefile.write("####################################################\n")
 makefile.write("# Package rules\n")

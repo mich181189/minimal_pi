@@ -1,17 +1,22 @@
 #!/bin/bash
 set -e
 
-if [-d $MINIMALPI_ROOT/toolchain_build ]; then
+if [ -d $MINIMALPI_ROOT/toolchain_build ]; then
 	rm -rf $MINIMALPI_ROOT/toolchain_build
 fi
 
-if [-d $MINIMALPI_ROOT/crosstools ]; then
+if [ -d $MINIMALPI_ROOT/crosstools ]; then
 	rm -rf $MINIMALPI_ROOT/crosstools
+fi
+
+if [ -d $MINIMALPI_ROOT/toolchain ]; then
+	rm -rf $MINIMALPI_ROOT/toolchain
 fi
 
 #Make the directories we will need
 mkdir -p $MINIMALPI_ROOT/crosstools
 mkdir -p $MINIMALPI_ROOT/toolchain
+mkdir -p $MINIMALPI_ROOT/toolchain_build
 
 #set up some variables
 source build_vars.sh

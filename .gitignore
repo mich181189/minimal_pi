@@ -2,3 +2,8 @@ Makefile
 toolchain
 target
 *.pyc
+buildPkgs/
+crosstool-ng-*
+crosstools
+downloads
+toolchain_build
