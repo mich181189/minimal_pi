@@ -1,3 +1,8 @@
 mount -a
+echo "Remounting root r/w"
+mount -o remount,rw /
 echo /sbin/mdev > /proc/sys/kernel/hotplug
 mdev -s
+echo Setting hostname
+hostname -F /etc/hostname
+dhclient eth0

@@ -1,0 +1,16 @@
+diff -rupN nano-2.4.1_clean/src/nano.h nano-2.4.1/src/nano.h
+--- nano-2.4.1_clean/src/nano.h	2015-01-20 04:43:21.000000000 +0000
++++ nano-2.4.1/src/nano.h	2015-05-03 22:01:18.671092673 +0100
+@@ -87,10 +87,10 @@
+ #elif defined(HAVE_NCURSESW_NCURSES_H)
+ #include <ncursesw/ncurses.h>
+ #elif defined(HAVE_NCURSES_H)
+-#include <ncurses.h>
++#include <ncurses/ncurses.h>
+ #else
+ /* Curses support. */
+-#include <curses.h>
++#include <ncurses/curses.h>
+ #endif /* CURSES_H */
+ 
+ #ifdef ENABLE_NLS

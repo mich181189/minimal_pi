@@ -9,11 +9,15 @@ DIR_TREE=[
             "/dev",
             "/root",
             "/sys",
+            "/boot"
             ]
 
 EXTRA_SCRIPTS = {
                     "scripts/fstab":"/etc/fstab",
-                    "scripts/rcS":"/etc/init.d/rcS"
+                    "scripts/rcS":"/etc/init.d/rcS",
+                    "scripts/hostname":"/etc/hostname",
+                    "scripts/passwd":"/etc/passwd",
+                    "scripts/shadow":"/etc/shadow"
                 }
 EXTRA_SCRIPTS_EXEC = ["/etc/init.d/rcS"]
 
@@ -24,9 +28,12 @@ DIR_BUILD="buildPkgs"
 #Package Definitions
 from packageDefs.busybox import busybox
 from packageDefs.libtirpc import libtirpc
+from packageDefs.dhcpcd import dhcpcd
+from packageDefs.nano import nano 
+from packageDefs.ncurses import ncurses
 
 #Package list
-PACKAGES=[libtirpc,busybox]
+PACKAGES=[libtirpc,busybox,dhcpcd,nano,ncurses]
 
 #functions for writing a makefile
 def writeRule(f,target,dependencies,rules):
@@ -70,6 +77,10 @@ def writePackageRules(f,package):
     #Head on into build directory itself and start work
     rules.append("cd " + package["buildDir"])
 
+    if "patches" in package:
+        for patch in package["patches"]:
+            rules.append("patch -p1 < ../../packageDefs/"+patch)
+
     #Call any extra scripts this package needs for setup
     if "extraScripts" in package:
         for script in package["extraScripts"]:
@@ -79,8 +90,12 @@ def writePackageRules(f,package):
         deps.append(dep)
     
     #set some defaults
+    envString = ""
+    if "envVars" in package:
+        for var,val in package["envVars"].iteritems():
+            envString = envString+var+"=\""+val+"\" "
     if not "configure" in package:
-        package["configure"] = "./configure --prefix="+os.environ["MINIMALPI_ROOT"]+"/" \
+        package["configure"] = envString+"./configure --prefix="+os.environ["MINIMALPI_ROOT"]+"/" \
         +DIR_ROOT+"/usr --host="+os.environ["MINIMALPI_ARCH"] + \
         " --with-sysroot="+os.environ["MINIMALPI_ROOT"]+"/"+DIR_ROOT
 
@@ -110,17 +125,18 @@ def writePackageRules(f,package):
 
     extraMakeRules[:0] = [realrules]
 
+    writeRule(f,package["name"]+"_main",deps,extraMakeRules)
+    extraDeps = [package["name"]+"_main"]
     if "extraInstall" in package:
-        writeRule(f,package["name"]+"_main",deps,extraMakeRules)
-        extraDeps = [package["name"]+"_main"]
         for src,dest in package["extraInstall"].iteritems():
             writeRule(f,DIR_ROOT+dest,[DIR_BUILD+"/"+package["buildDir"]+"/"+src],
                 ["sudo env PATH=$$PATH cp "+DIR_BUILD+"/"+package["buildDir"]+"/"+src+" "+DIR_ROOT+dest])
             extraDeps.append(DIR_ROOT+dest)
-        writeRule(f,package["name"],extraDeps,[])
+    writeRule(f,package["name"]+"_all",extraDeps,[])
+    writeRule(f,"."+package["name"],[],["${MAKE} "+package["name"]+"_all","touch ."+package["name"]])
 
-    else:
-        writeRule(f,package["name"],deps,extraMakeRules)
+    writeRule(f,package["name"],["."+package["name"]],[])
+    cleanCommands.append("rm -f "+"."+package["name"])
     
 
 #scratch variable to hold the directories we've created rules for

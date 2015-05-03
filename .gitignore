@@ -7,3 +7,7 @@ crosstool-ng-*
 crosstools
 downloads
 toolchain_build
+
+temp
+
+.*
