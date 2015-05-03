@@ -5,4 +5,4 @@ echo /sbin/mdev > /proc/sys/kernel/hotplug
 mdev -s
 echo Setting hostname
 hostname -F /etc/hostname
-dhclient eth0
+dhcpcd eth0
