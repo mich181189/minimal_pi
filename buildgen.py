@@ -4,6 +4,18 @@
 import os
 
 #first, some settings
+DIR_TREE=[
+            "/proc",
+            "/dev",
+            "/root",
+            "/sys",
+            ]
+
+EXTRA_SCRIPTS = {
+                    "scripts/fstab":"/etc/fstab",
+                    "scripts/rcS":"/etc/init.d/rcS"
+                }
+EXTRA_SCRIPTS_EXEC = ["/etc/init.d/rcS"]
 
 DIR_ROOT="target"
 DIR_DOWNLOAD="downloads"
@@ -112,8 +124,8 @@ def writePackageRules(f,package):
     
 
 #scratch variable to hold the directories we've created rules for
-doneDirs = []
-def createDirectory(f,directory):
+doneDirs = [DIR_ROOT] #There's a separate rule for the target
+def createDirectory(f,directory,sudo=False):
     global doneDirs
     deps = []
     soFar = ""
@@ -124,7 +136,10 @@ def createDirectory(f,directory):
           soFar = soFar+"/"+part
       if not soFar in doneDirs:
         print "Writing rules to create " + directory
-        writeRule(f,soFar,deps,['mkdir -p '+soFar])
+        if not sudo:
+            writeRule(f,soFar,deps,['mkdir -p '+soFar])
+        else:
+            writeRule(f,soFar,deps,['sudo env PATH=$$PATH mkdir -p '+soFar])
         doneDirs.append(soFar)
       deps.append(soFar)
 
@@ -140,11 +155,14 @@ def createLink(f,src,dest):
 print "MinimalPi Makefile Generator"
 print ""
 #figure out what targets we need to build by default
-mainTargets = ["directories","packages"]
+mainTargets = ["directories","packages","scripts"]
 dirTargets = [DIR_DOWNLOAD,DIR_BUILD]
 linkTargets = []
 cleanCommands = ["rm -rf "+DIR_ROOT]
 packageDeps = []
+
+for dir in DIR_TREE:
+    dirTargets.append(DIR_ROOT+dir)
 
 for package in PACKAGES:
     packageDeps.append(package["name"])
@@ -167,6 +185,9 @@ makefile.write("####################################################\n")
 makefile.write("# Directory rules\n")
 makefile.write("####################################################\n")
 
+for dir in DIR_TREE:
+    createDirectory(makefile,DIR_ROOT+dir)
+
 target_rules = [
                 "mkdir -p " + DIR_ROOT,
                 "cp -rp toolchain/"+os.environ['MINIMALPI_ARCH']+"/"+os.environ['MINIMALPI_ARCH']+"/sysroot/* "+DIR_ROOT
@@ -182,10 +203,26 @@ makefile.write("####################################################\n")
 for package in PACKAGES:
     writePackageRules(makefile,package)
 
+makefile.write("####################################################\n")
+makefile.write("# Script rules\n")
+makefile.write("####################################################\n")
+script_deps = []
+for src,dest in EXTRA_SCRIPTS.iteritems():
+    script_deps.append(DIR_ROOT+dest)
+    createDirectory(makefile,(DIR_ROOT+dest).rsplit("/",1)[0],True)
+    commands = [
+        "sudo env PATH=$$PATH  cp "+src+" "+DIR_ROOT+dest]
+    if dest in EXTRA_SCRIPTS_EXEC:
+        commands.append("sudo env PATH=$$PATH chmod +x " + DIR_ROOT+dest)
+    writeRule(makefile,DIR_ROOT+dest,[src,(DIR_ROOT+dest).rsplit("/",1)[0]],commands)
+
+writeRule(makefile,"scripts",script_deps,[])
+
 #write the clean rule
 makefile.write("####################################################\n")
 makefile.write("# Cleanup rules\n")
 makefile.write("####################################################\n")
+cleanCommands.append("rm -rf "+DIR_BUILD)
 writeRule(makefile,"clean",[],cleanCommands)
 
 makefile.close()

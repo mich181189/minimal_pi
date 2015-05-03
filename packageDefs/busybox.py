@@ -9,5 +9,6 @@ busybox = {
              "extraFiles": {"busybox.config":".config"},
              "configure": "", #busybox doesn't use configure
              "extraInstall": {"examples/inittab":"/etc/inittab",
-             					"examples/inetd.conf":"/etc/inetd.conf"}
+             					"examples/inetd.conf":"/etc/inetd.conf",
+             					"examples/mdev.conf":"/etc/mdev.conf"}
           }
