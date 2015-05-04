@@ -18,6 +18,7 @@ EXTRA_SCRIPTS = {
                     "scripts/hostname":"/etc/hostname",
                     "scripts/passwd":"/etc/passwd",
                     "scripts/shadow":"/etc/shadow"
+                    "scripts/ld.so.conf":"/etc/ld.so.conf"
                 }
 EXTRA_SCRIPTS_EXEC = ["/etc/init.d/rcS"]
 
