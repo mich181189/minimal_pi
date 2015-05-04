@@ -31,9 +31,25 @@ from packageDefs.libtirpc import libtirpc
 from packageDefs.dhcpcd import dhcpcd
 from packageDefs.nano import nano 
 from packageDefs.ncurses import ncurses
+from packageDefs.jpeg import jpeg
+from packageDefs.zlib import zlib
+from packageDefs.libpng import libpng
+from packageDefs.libfreetype import libfreetype,libfreetype_noharfbuzz
+from packageDefs.harfbuzz import harfbuzz
+from packageDefs.icu import icu,icu_host
+from packageDefs.glib import glib
+from packageDefs.libffi import libffi
+from packageDefs.fontconfig import fontconfig
+from packageDefs.expat import expat
+from packageDefs.directfb import directfb,libdrm
+from packageDefs.kernel_headers import kernel_headers
+from packageDefs.libtiff import libtiff
+from packageDefs.libwebp import libwebp
 
 #Package list
-PACKAGES=[libtirpc,busybox,dhcpcd,nano,ncurses]
+PACKAGES=[libtirpc,busybox,dhcpcd,nano,ncurses,jpeg,zlib,libpng,libfreetype,
+            harfbuzz,libfreetype_noharfbuzz,icu,icu_host,glib,libffi,fontconfig,
+            expat,directfb,libdrm,kernel_headers,libtiff,libwebp]
 
 #functions for writing a makefile
 def writeRule(f,target,dependencies,rules):
@@ -74,6 +90,10 @@ def writePackageRules(f,package):
         for src,dest in package["extraFiles"].iteritems():
             rules.append("cp ../packageDefs/"+src+" " + package["buildDir"]+"/"+dest)
 
+    if "preconfig" in package:
+        for rule in package["preconfig"]:
+            rules.append(rule)
+
     #Head on into build directory itself and start work
     rules.append("cd " + package["buildDir"])
 
@@ -95,24 +115,28 @@ def writePackageRules(f,package):
         for var,val in package["envVars"].iteritems():
             envString = envString+var+"=\""+val+"\" "
     if not "configure" in package:
-        package["configure"] = envString+"./configure --prefix="+os.environ["MINIMALPI_ROOT"]+"/" \
+        package["configure"] = "./configure --prefix="+os.environ["MINIMALPI_ROOT"]+"/" \
         +DIR_ROOT+"/usr --host="+os.environ["MINIMALPI_ARCH"] + \
         " --with-sysroot="+os.environ["MINIMALPI_ROOT"]+"/"+DIR_ROOT
 
         if "extraconfig" in package:
             package["configure"] = package["configure"] + " " + package["extraconfig"]
 
+    package["configure"] = envString+package["configure"]
+
     rules.append(package["configure"])
     
     #Otherwise we'll do a normal recursive make
     extraMakeRules = []
     if "make" in package:
-        extraMakeRules.append("cd " + DIR_BUILD+"/"+package["buildDir"] + " && " + package["make"])
+        if package["make"] != "":
+            extraMakeRules.append("cd " + DIR_BUILD+"/"+package["buildDir"] + " && " + package["make"])
     else:
         extraMakeRules.append("$(MAKE) -j4 -C " + DIR_BUILD+"/"+package["buildDir"])
 
     if "make_install" in package:
-        extraMakeRules.append("cd " + DIR_BUILD+"/"+package["buildDir"] + " && " + package["make_install"])
+        if package["make_install"] != "":
+            extraMakeRules.append("cd " + DIR_BUILD+"/"+package["buildDir"] + " && " + package["make_install"])
     else:
         extraMakeRules.append("sudo env PATH=$$PATH $(MAKE) -C " + DIR_BUILD+"/"+package["buildDir"] + " install")
 

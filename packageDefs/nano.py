@@ -13,5 +13,5 @@ nano = {
              	"CFLAGS":"--sysroot="+os.environ["MINIMALPI_ROOT"]+"/target",
              	"LDFLAGS":"--sysroot="+os.environ["MINIMALPI_ROOT"]+"/target"
              	},
-             	"extraconfig":"--enable-utf8=no"
+             "extraconfig":"--enable-utf8=no"
           }
