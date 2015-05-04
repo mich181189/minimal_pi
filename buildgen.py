@@ -111,12 +111,20 @@ def writePackageRules(f,package):
     
     #set some defaults
     envString = ""
-    if "envVars" in package:
-        for var,val in package["envVars"].iteritems():
-            envString = envString+var+"=\""+val+"\" "
+    if not "envVars" in package:
+        package["envVars"] = {
+            "CFLAGS":"-I"+os.environ["MINIMALPI_ROOT"]+"/"+DIR_ROOT+"/usr/include",
+            "CPPFLAGS":"-I"+os.environ["MINIMALPI_ROOT"]+"/"+DIR_ROOT+"/usr/include",
+            "LDFLAGS":"-L"+os.environ["MINIMALPI_ROOT"]+"/"+DIR_ROOT+"/usr/lib \
+                -L"+os.environ["MINIMALPI_ROOT"]+"/"+DIR_ROOT+"/lib \
+                --sysroot="+os.environ["MINIMALPI_ROOT"]+"/target",
+        }
+        
+    for var,val in package["envVars"].iteritems():
+        envString = envString+var+"=\""+val+"\" "
+
     if not "configure" in package:
-        package["configure"] = "./configure --prefix="+os.environ["MINIMALPI_ROOT"]+"/" \
-        +DIR_ROOT+"/usr --host="+os.environ["MINIMALPI_ARCH"] + \
+        package["configure"] = "./configure --prefix=/usr --host="+os.environ["MINIMALPI_ARCH"] + \
         " --with-sysroot="+os.environ["MINIMALPI_ROOT"]+"/"+DIR_ROOT
 
         if "extraconfig" in package:
@@ -138,7 +146,7 @@ def writePackageRules(f,package):
         if package["make_install"] != "":
             extraMakeRules.append("cd " + DIR_BUILD+"/"+package["buildDir"] + " && " + package["make_install"])
     else:
-        extraMakeRules.append("sudo env PATH=$$PATH $(MAKE) -C " + DIR_BUILD+"/"+package["buildDir"] + " install")
+        extraMakeRules.append("sudo env PATH=$$PATH $(MAKE) DESTDIR="+os.environ["MINIMALPI_ROOT"]+"/"+DIR_ROOT+" -C " + DIR_BUILD+"/"+package["buildDir"] + " install")
 
     realrules = ""
 

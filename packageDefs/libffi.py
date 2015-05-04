@@ -10,7 +10,7 @@ libffi = {
                 "CFLAGS":"--sysroot="+os.environ["MINIMALPI_ROOT"]+"/target",
                 "LDFLAGS":"--sysroot="+os.environ["MINIMALPI_ROOT"]+"/target"
                 },
-             "extraconfig":"--includedir="+os.environ["MINIMALPI_ROOT"]+"/target/usr/include",
+             "extraconfig":"--includedir=/usr/include",
              "preconfig": [ "sed -e '/^includesdir/ s/$$(libdir).*$$/$$(includedir)/' -i libffi-3.2.1/include/Makefile.in",
                             "sed -e '/^includedir/ s/=.*$$/=@includedir@/' -e 's/^Cflags: -I$${includedir}/Cflags:/' -i libffi-3.2.1/libffi.pc.in"
                             ]

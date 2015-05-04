@@ -10,5 +10,5 @@ zlib = {
                 "CFLAGS":"--sysroot="+os.environ["MINIMALPI_ROOT"]+"/target",
                 "LDFLAGS":"--sysroot="+os.environ["MINIMALPI_ROOT"]+"/target"
                 },
-             "configure":"./configure --prefix="+os.environ["MINIMALPI_ROOT"]+"/target/usr"
+             "configure":"./configure --prefix=/usr"
           }

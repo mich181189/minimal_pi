@@ -20,5 +20,6 @@ icu_host = {
              "dependencies":[],
              "configure": "../source/configure",
              "make_install":"",
-             "preconfig":["mkdir -p icu/host"]
+             "preconfig":["mkdir -p icu/host"],
+             "envVars": {} #none - this is a host build
           }
