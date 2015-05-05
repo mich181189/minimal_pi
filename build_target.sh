@@ -1,5 +1,5 @@
 #include some common variables
 source build_vars.sh
-python buildgen.py
+python minimal_piBuild.py
 
-make
+make -j4
