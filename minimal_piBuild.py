@@ -51,11 +51,15 @@ packageDict = {
                 "ncurses":ncurses.get_ncurses(globalConf),
                 "nano":nano.get_nano(globalConf),
                 "htop":htop.get_htop(globalConf),
+                "glib":glib.get_glib(globalConf),
+                "expat":expat.get_expat(globalConf),
+                "fontconfig":fontconfig.get_fontconfig(globalConf)
                 }
 
 #TEMP_PROFILE
 TEMP_PROFILE = ["libtirpc","rasPiExtras","busybox","dhcpcd","baseScripts","jpeg","icu","kernelHeaders",
-                "libffi","zlib","libpng","libtiff","libwebp","freetype","ncurses","nano","htop"]
+                "libffi","zlib","libpng","libtiff","libwebp","freetype","ncurses","nano","htop",
+                "glib","expat","fontconfig"]
 
 #write the makefile
 
