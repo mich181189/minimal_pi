@@ -47,19 +47,23 @@ packageDict = {
                 "libpng":libpng.get_png(globalConf),
                 "libtiff":libtiff.get_tiff(globalConf),
                 "libwebp":libwebp.get_libwebp(globalConf),
-                "freetype":freetype.get_freetype(globalConf),
+                "freetype_noharfbuzz":freetype.get_freetype_noharfbuzz(globalConf),
                 "ncurses":ncurses.get_ncurses(globalConf),
                 "nano":nano.get_nano(globalConf),
                 "htop":htop.get_htop(globalConf),
                 "glib":glib.get_glib(globalConf),
                 "expat":expat.get_expat(globalConf),
-                "fontconfig":fontconfig.get_fontconfig(globalConf)
+                "fontconfig":fontconfig.get_fontconfig(globalConf),
+                "harfbuzz":harfbuzz.get_harfbuzz(globalConf),
+                "freetype":freetype.get_freetype(globalConf),
+                "libdrm":libdrm.get_libdrm(globalConf),
+                "directfb":directfb.get_directfb(globalConf),
                 }
 
 #TEMP_PROFILE
 TEMP_PROFILE = ["libtirpc","rasPiExtras","busybox","dhcpcd","baseScripts","jpeg","icu","kernelHeaders",
                 "libffi","zlib","libpng","libtiff","libwebp","freetype","ncurses","nano","htop",
-                "glib","expat","fontconfig"]
+                "glib","expat","fontconfig","harfbuzz","freetype_noharfbuzz","libdrm","directfb"]
 
 #write the makefile
 

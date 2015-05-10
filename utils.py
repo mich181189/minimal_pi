@@ -6,6 +6,8 @@ class makefileRule:
         self.depends = []
         self.commands = []
         self.clean_commands = []
+        self.addCommand("sudo -v")
+
 
     def addDependency(self,dependency):
         self.depends.append(dependency)
@@ -73,7 +75,6 @@ def makeExtractRule(globalDefs,downloadFile):
     rule = makefileRule("."+downloadFile.rsplit("/",1)[1]+"_extracted")
     rule.addCommand("tar -xf "+globalDefs["BaseDir"]+"/"+globalDefs["DownloadDir"]+"/"+downloadFile.rsplit("/",1)[1],globalDefs["BuildDir"])
     rule.addCommand("touch "+rule.name)
-    rule.addDependency("."+globalDefs["RelTargetDir"]+"_created")
     rule.addDependency(".created_"+globalDefs["BuildDir"])
     rule.addCleanCommand("rm -f ."+downloadFile.rsplit("/",1)[1]+"_extracted")
     return rule
@@ -116,13 +117,19 @@ class configureMakePackage(basePackage):
         self.globalDefs = globalDefs
         self.extraConfigureArgs = extraConfigureArgs
 
-        self.downloadRule = makeDownloadRule(self.globalDefs,self.downloadFile)
-        self.extractRule = makeExtractRule(self.globalDefs,self.downloadFile)
+        if self.downloadFile != "":
+            self.downloadRule = makeDownloadRule(self.globalDefs,self.downloadFile)
+            self.extractRule = makeExtractRule(self.globalDefs,self.downloadFile)
+        else:
+            self.downloadRule = None
+            self.extractRule = None
         self.extraFixRule = None
         self.configureRule = makeConfigureRule(self.globalDefs,self.name,self.workingDirectory,
                                             self.extraConfigureArgs)
         self.makeRule = makeMakeRule(self.globalDefs,self.name,self.workingDirectory)
         self.makeInstallRule = makeInstallRule(self.globalDefs,self.name,self.workingDirectory)
+
+        self.addDependency("."+globalDefs["RelTargetDir"]+"_created")
 
     def _addRuleToList(self,rules,rule):
         if rule is not None:
